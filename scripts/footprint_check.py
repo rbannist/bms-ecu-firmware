@@ -56,13 +56,17 @@ def main() -> int:
     static_ram = data_bytes + bss_bytes
 
     print(f"  [INFO] ROM (.text):        {text_bytes:4d} / {MAX_TEXT_BYTES} bytes")
-    print(f"  [INFO] RAM (.data + .bss): {static_ram:4d} / {MAX_STATIC_RAM_BYTES} bytes (.data={data_bytes}, .bss={bss_bytes})")
+    print(
+        f"  [INFO] RAM (.data + .bss): {static_ram:4d} / {MAX_STATIC_RAM_BYTES} bytes (.data={data_bytes}, .bss={bss_bytes})"
+    )
 
     if text_bytes > MAX_TEXT_BYTES:
         print(f"  [FAIL] ROM footprint ({text_bytes} B) exceeds budget ({MAX_TEXT_BYTES} B)")
         return 1
     if static_ram > MAX_STATIC_RAM_BYTES:
-        print(f"  [FAIL] Static RAM footprint ({static_ram} B) exceeds budget ({MAX_STATIC_RAM_BYTES} B)")
+        print(
+            f"  [FAIL] Static RAM footprint ({static_ram} B) exceeds budget ({MAX_STATIC_RAM_BYTES} B)"
+        )
         return 1
 
     print("------------------------------------------------------------")

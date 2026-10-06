@@ -1,6 +1,6 @@
-# BMS High-Voltage Contactor Overcurrent ECU Firmware (`bms-ecu-firmware`)
+# PHEV/HEV High-Voltage Battery Pack & HPCU Contactor Overcurrent ECU Firmware (`bms-ecu-firmware`)
 
-Deterministic C99 embedded controller module and Software-in-the-Loop (SIL) verification suite implementing **`REQ-BMS-042`** (ISO 26262 ASIL-C 50ms Fault Tolerant Time Interval overcurrent protection).
+Deterministic C99 embedded controller module and Software-in-the-Loop (SIL) verification suite implementing **`REQ-BMS-042`** (ISO 26262 ASIL-C 50ms Fault Tolerant Time Interval 200 A overcurrent protection for 200–350V hybrid powertrains).
 
 ## Quick Verification Commands
 

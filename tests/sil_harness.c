@@ -24,7 +24,7 @@ static uint32_t g_tests_failed = 0U;
     } while (0)
 
 /**
- * @brief Vector 1: Nominal pack current (350 A) keeps contactor closed.
+ * @brief Vector 1: Nominal HEV pack current (120 A assist/charge) keeps contactor closed.
  */
 static bool test_normal_operation_below_threshold(void) {
     BMS_MonitorState_t state;
@@ -33,9 +33,9 @@ static bool test_normal_operation_below_threshold(void) {
     SIL_ASSERT(BMS_FaultMonitor_Init(&state, &regs), "Init should succeed");
 
     for (uint8_t tick = 1U; tick <= 10U; tick++) {
-        regs.pack_current_ma = 350000UL; /* 350 A */
+        regs.pack_current_ma = 120000UL; /* 120 A */
         BMS_MonitorStateEnum_t s = BMS_FaultMonitor_Step(&state, &regs);
-        SIL_ASSERT(s == BMS_STATE_NORMAL, "State must remain BMS_STATE_NORMAL at 350A");
+        SIL_ASSERT(s == BMS_STATE_NORMAL, "State must remain BMS_STATE_NORMAL at 120A");
         SIL_ASSERT(state.debounce_ticks == 0U, "Debounce counter must remain 0");
         SIL_ASSERT(regs.contactor_ctrl == BMS_REG_CONTACTOR_CLOSED_BIT, "Contactor must stay closed");
         SIL_ASSERT(regs.fault_status == BMS_FAULT_NONE, "No fault flags should be set");
@@ -44,7 +44,7 @@ static bool test_normal_operation_below_threshold(void) {
 }
 
 /**
- * @brief Vector 2: Transient EMI spike (4 ticks @ 520 A = 40ms < 50ms FTTI) is rejected.
+ * @brief Vector 2: Transient ICE starter-generator (ISG) crank assist / regen pulse (4 ticks @ 240 A = 40ms < 50ms FTTI) is rejected.
  */
 static bool test_transient_spike_rejection(void) {
     BMS_MonitorState_t state;
@@ -52,17 +52,17 @@ static bool test_transient_spike_rejection(void) {
 
     SIL_ASSERT(BMS_FaultMonitor_Init(&state, &regs), "Init should succeed");
 
-    /* 4 consecutive ticks (40ms) above 500A threshold */
+    /* 4 consecutive ticks (40ms) above 200A threshold */
     for (uint8_t tick = 1U; tick <= 4U; tick++) {
-        regs.pack_current_ma = 520000UL; /* 520 A */
+        regs.pack_current_ma = 240000UL; /* 240 A */
         BMS_MonitorStateEnum_t s = BMS_FaultMonitor_Step(&state, &regs);
         SIL_ASSERT(s == BMS_STATE_DEBOUNCING, "Must be debouncing during ticks 1..4");
         SIL_ASSERT(state.debounce_ticks == tick, "Debounce tick counter mismatch");
         SIL_ASSERT(regs.contactor_ctrl == BMS_REG_CONTACTOR_CLOSED_BIT, "Contactor must remain closed during debounce");
     }
 
-    /* Tick 5 drops back to nominal 300A -> must reset to NORMAL without tripping */
-    regs.pack_current_ma = 300000UL;
+    /* Tick 5 drops back to nominal 120A -> must reset to NORMAL without tripping */
+    regs.pack_current_ma = 120000UL;
     BMS_MonitorStateEnum_t s = BMS_FaultMonitor_Step(&state, &regs);
     SIL_ASSERT(s == BMS_STATE_NORMAL, "Must recover to BMS_STATE_NORMAL when transient clears on tick 5");
     SIL_ASSERT(state.debounce_ticks == 0U, "Debounce ticks must reset to 0");
@@ -72,7 +72,7 @@ static bool test_transient_spike_rejection(void) {
 }
 
 /**
- * @brief Vector 3: Sustained overcurrent (5 ticks @ 520 A = 50ms FTTI) trips contactor on tick 5.
+ * @brief Vector 3: Sustained overcurrent (5 ticks @ 240 A = 50ms FTTI during inverter short / boost DC-DC fault) trips contactor on tick 5.
  * Per REQ-BMS-042.2, the contactor MUST trip at 50ms (tick 5), NOT 60ms (tick 6).
  */
 static bool test_sustained_overcurrent_trips_at_50ms(void) {
@@ -83,13 +83,13 @@ static bool test_sustained_overcurrent_trips_at_50ms(void) {
 
     /* Ticks 1..4 (10ms..40ms): Debouncing */
     for (uint8_t tick = 1U; tick <= 4U; tick++) {
-        regs.pack_current_ma = 520000UL;
+        regs.pack_current_ma = 240000UL;
         BMS_MonitorStateEnum_t s = BMS_FaultMonitor_Step(&state, &regs);
         SIL_ASSERT(s == BMS_STATE_DEBOUNCING, "Ticks 1..4 must be in BMS_STATE_DEBOUNCING");
     }
 
     /* Tick 5 (50ms FTTI boundary): MUST trip and latch fault immediately */
-    regs.pack_current_ma = 520000UL;
+    regs.pack_current_ma = 240000UL;
     BMS_MonitorStateEnum_t s5 = BMS_FaultMonitor_Step(&state, &regs);
     SIL_ASSERT(
         s5 == BMS_STATE_FAULT_LATCHED,
@@ -117,10 +117,10 @@ static bool test_fault_latch_persists_after_current_drops(void) {
     SIL_ASSERT(BMS_FaultMonitor_Init(&state, &regs), "Init should succeed");
 
     for (uint8_t tick = 1U; tick <= 5U; tick++) {
-        regs.pack_current_ma = 600000UL;
+        regs.pack_current_ma = 280000UL;
         (void)BMS_FaultMonitor_Step(&state, &regs);
     }
-    SIL_ASSERT(state.current_state == BMS_STATE_FAULT_LATCHED, "Must be latched after 5 ticks at 600A");
+    SIL_ASSERT(state.current_state == BMS_STATE_FAULT_LATCHED, "Must be latched after 5 ticks at 280A");
 
     /* Drop current to 0 A; contactor must NOT re-close automatically */
     regs.pack_current_ma = 0UL;
@@ -164,8 +164,8 @@ int main(void) {
     };
 
     printf("============================================================\n");
-    printf(" BMS Overcurrent Fault Monitor — SIL Verification Harness\n");
-    printf(" Target Spec: REQ-BMS-042 (ISO 26262 ASIL-C, 50ms FTTI)\n");
+    printf(" BMS/HPCU Overcurrent Fault Monitor — SIL Verification Harness\n");
+    printf(" Target Spec: REQ-BMS-042 (ISO 26262 ASIL-C, 50ms FTTI, 200A limit)\n");
     printf("============================================================\n");
 
     const uint32_t total = (uint32_t)(sizeof(suite) / sizeof(suite[0]));
