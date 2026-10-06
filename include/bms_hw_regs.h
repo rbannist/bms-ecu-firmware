@@ -32,7 +32,7 @@
  * @brief Memory-mapped register block for the BMS High-Voltage Contactor peripheral.
  */
 typedef struct {
-    volatile uint32_t pack_current_ma; /**< 0x00: Instantaneous pack current in mA */
+    volatile uint32_t pack_current_ma; /**< 0x00: Rectified absolute pack current in mA (|I_pack|) */
     volatile uint32_t contactor_ctrl;  /**< 0x04: Contactor coil driver control bits */
     volatile uint32_t fault_status;    /**< 0x08: Diagnostic fault status flags */
 } BMS_HwRegs_t;
