@@ -16,8 +16,8 @@
 /** @brief Cyclic task execution period in milliseconds (10 ms). */
 #define BMS_TASK_PERIOD_MS          (10U)
 
-/** @brief Overcurrent threshold in milliamperes (500 A = 500,000 mA). */
-#define BMS_OVERCURRENT_LIMIT_MA    (500000UL)
+/** @brief HEV/PHEV overcurrent magnitude threshold in milliamperes (200 A = 200,000 mA). */
+#define BMS_OVERCURRENT_LIMIT_MA    (200000UL) /* 200 A HEV/PHEV boost/regen limit */
 
 /**
  * @brief Number of consecutive 10ms overcurrent ticks required to trip (50 ms FTTI).

@@ -15,17 +15,38 @@ import subprocess
 import sys
 
 BANNED_HEAP_PATTERNS = [
-    (r"\b(malloc|calloc|realloc|free|aligned_alloc)\s*\(", "MISRA-Dir-4.12 / Rule-21.3", "Dynamic heap memory allocation is prohibited in ASIL-C ECU code."),
-    (r"#\s*include\s*<stdio\.h>", "MISRA-Rule-21.6", "Standard I/O (<stdio.h>) is prohibited in production ECU source files."),
-    (r"#\s*include\s*<stdlib\.h>", "MISRA-Rule-21.3", "Standard library (<stdlib.h>) heap/process functions are prohibited in production ECU files."),
+    (
+        r"\b(malloc|calloc|realloc|free|aligned_alloc)\s*\(",
+        "MISRA-Dir-4.12 / Rule-21.3",
+        "Dynamic heap memory allocation is prohibited in ASIL-C ECU code.",
+    ),
+    (
+        r"#\s*include\s*<stdio\.h>",
+        "MISRA-Rule-21.6",
+        "Standard I/O (<stdio.h>) is prohibited in production ECU source files.",
+    ),
+    (
+        r"#\s*include\s*<stdlib\.h>",
+        "MISRA-Rule-21.3",
+        "Standard library (<stdlib.h>) heap/process functions are prohibited in production ECU files.",
+    ),
     (r"\bgoto\b", "MISRA-Rule-15.1", "The goto statement shall not be used."),
-    (r"\b(float|double)\b", "ISO26262-FixedPoint", "Floating-point types are prohibited in deterministic contactor control; use fixed-point mA (<stdint.h>)."),
-    (r"(?<![a-zA-Z0-9_])(int|long|short)(?![a-zA-Z0-9_])", "MISRA-Dir-4.6", "Basic numerical types (int/long/short) shall not be used; use explicit fixed-width <stdint.h> types."),
+    (
+        r"\b(float|double)\b",
+        "ISO26262-FixedPoint",
+        "Floating-point types are prohibited in deterministic contactor control; use fixed-point mA (<stdint.h>).",
+    ),
+    (
+        r"(?<![a-zA-Z0-9_])(int|long|short)(?![a-zA-Z0-9_])",
+        "MISRA-Dir-4.6",
+        "Basic numerical types (int/long/short) shall not be used; use explicit fixed-width <stdint.h> types.",
+    ),
 ]
 
 
 def strip_comments_and_strings(source: str) -> str:
     """Replaces C comments and string literals with spaces while preserving line numbers."""
+
     def _replacer(match: re.Match[str]) -> str:
         text = match.group(0)
         return "\n" * text.count("\n")
