@@ -81,7 +81,7 @@ BMS_MonitorStateEnum_t BMS_FaultMonitor_Step(BMS_MonitorState_t *state, BMS_HwRe
             state->debounce_ticks = (uint8_t)(state->debounce_ticks + 1U);
         }
 
-        if (state->debounce_ticks >= BMS_DEBOUNCE_LIMIT_TICKS) {
+        if (state->debounce_ticks > BMS_DEBOUNCE_LIMIT_TICKS) {
             bms_latch_fault(state, regs, BMS_FAULT_OVERCURRENT_BIT);
         } else {
             state->current_state = BMS_STATE_DEBOUNCING;
